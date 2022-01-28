@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마우스 방향 감지 캡션 애니메이션</title>
+    <style>
+        img {
+            vertical-align: top;
+        }
+
+        figure {
+            width:200px;
+            margin:100px auto;
+            position: relative;
+            overflow:hidden;
+        }
+
+        figcaption {
+            position: absolute;
+            /* 마우스가 영역 내에 없을 때는 바깥쪽에 위치하도록 */
+            left:100%; 
+            top:0;
+            width:100%;
+            height:100%;
+            background: rgba(0,0,0,0.5);
+            color:#fff;
+            font-size: 30px;
+            text-transform: uppercase;
+            text-align: center;
+            line-height: 200px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>mouse direction detection</h1>
+    <h2></h2>
+    <figure>
+        <img src="http://placehold.it/200x200" alt="">
+        <figcaption>title</figcaption>
+    </figure>
+    <!-- 
+        clientX, clientY : 브라우저 화면 기준 마우스 위치 (스크롤 영역 제외하고 / 좌측 상단 0)
+        offsetX, offsetY : 이벤트가 발생한 대상 기준 마우스 위치
+        pageX, pageY : 문서 전체 페이지 기준 현재 마우스 위치
+        screenX, screenY : 모니터 화면 기준 마우스 위치 (스크롤 영역)
+     -->
+
+     <!--
+         위에 적힌 각 좌표값들 확인 
+         마우스가 움직일 때 (event : mousemove)
+    -->
+    <script>
+        // document.addEventListener('mousemove', function(e) {
+        //     console.log(e.clientX, e.clientY);
+        //     console.log(e.offsetX, e.offsetY);
+        //     console.log(e.pageX, e.pageY);
+        //     console.log(e.screenX, e.screenY);
+        // });
+
+
+        // var target = document.querySelector('figure');
+        var target = $('figure');
+
+        // target.addEventListener('mousemove', function(e) {
+        //     console.log(e.clientX, e.clientY);
+        //     console.log(e.offsetX, e.offsetY);
+        //     console.log(e.pageX, e.pageY);
+        //     console.log(e.screenX, e.screenY);
+        // });
+
+        var direction = '';
+        // var oldX = 0;
+        // var oldY = 0;
+
+        function detectMouseDirection(e) {
+            // (e) : 이벤트가 있을 때
+            // oldX 보다 현재 마우스 위치값이 크면 : 마우스를 오른쪽으로 움직인 것임
+            // if(e.offsetX > oldX && e.offsetY == oldY) {
+            //     direction = "east";
+            // }
+
+            // oldX 보다 현재 마우스 위치값이 작으면 : 마우스를 왼쪽으로 움직인 것임
+            // if(e.offsetX < oldX && e.offsetY == oldY) {
+            //     direction = "west";
+            // }
+
+            // oldY 보다 현재 마우스 위치값이 크면 : 마우스를 아래쪽으로 움직인 것임
+            // if(e.offsetX == oldX && e.offsetY > oldY) {
+            //     direction = "south";
+            // }
+
+            // oldY 보다 현재 마우스 위치값이 작으면 : 마우스를 위쪽으로 움직인 것임
+            // if(e.offsetX == oldX && e.offsetY < oldY) {
+            //     direction = "north";
+            // }
+
+            // document.querySelector('h2').innerText = direction;
+            // oldX = e.offsetY;
+            // oldY = e.offsetY;
+            // console.log(direction);
+
+
+            // ---------------------------------------------------------------------
+
+            /** the width and height of the current div **/
+            var w = $(this).width();
+            var h = $(this).height();
+
+            /** calculate the x and y to get an angle to the center of the div from that x and y. **/
+            /** gets the x value relative to the center of the DIV and "normalize" it **/
+            var x = (e.pageX - $(this).offset().left - (w/2)) * ( w > h ? (h/w) : 1 );
+            var y = (e.pageY - $(this).offset().top  - (h/2)) * ( h > w ? (w/h) : 1 );
+
+            /** the angle and the direction from where the mouse came in/went out clockwise (TRBL=0123);**/
+            /** first calculate the angle of the point, 
+             add 180 deg to get rid of the negative values
+            divide by 90 to get the quadrant
+            add 3 and do a modulo by 4  to shift the quadrants to a proper clockwise TRBL (top/right/bottom/left) **/
+            var direction = Math.round((((Math.atan2(y, x) * (180 / Math.PI)) + 180 ) / 90 ) + 3 )  % 4;
+            console.log(direction);
+
+            /** do your animations here **/ 
+            switch(direction) {
+                case 0:
+                /** animations from the TOP : 마우스 위에서 아래로 **/
+                break;
+                case 1:
+                /** animations from the RIGHT : 마우스 오른쪽에서 왼쪽으로 **/
+                break;
+                case 2:
+                /** animations from the BOTTOM : 마우스 아래에서 위로 **/
+                break;
+                case 3:
+                /** animations from the LEFT : 마우스 왼쪽에서 오른쪽으로 **/
+                break;
+            }
+        }
+
+        // target.addEventListener('mousemove mouseenter mouseleave', detectMouseDirection);
+        target.on('mousemove mouseenter mouseleave', detectMouseDirection);
+        // document.addEventListener('mousemove', function() {
+        //     detectMouseDirection();
+        // });
+        // 와 같은 코드
+    </script>
+</body>
+</html>
