@@ -6,13 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마우스 방향 감지 캡션 애니메이션</title>
     <style>
+        ul {
+            display: flex;
+            width:660px;
+            justify-content: space-between;
+            list-style: none;
+        }
+
         img {
             vertical-align: top;
         }
 
         figure {
             width:200px;
-            margin:100px auto;
             position: relative;
             overflow:hidden;
         }
@@ -37,10 +43,26 @@
 <body>
     <h1>mouse direction detection</h1>
     <h2></h2>
-    <figure>
-        <img src="http://placehold.it/200x200" alt="">
-        <figcaption>title</figcaption>
-    </figure>
+    <ul>
+        <li>
+            <figure>
+                <img src="http://placehold.it/200x200" alt="">
+                <figcaption>title1</figcaption>
+            </figure>
+        </li>
+        <li>
+            <figure>
+                <img src="http://placehold.it/200x200" alt="">
+                <figcaption>title2</figcaption>
+            </figure>
+        </li>
+        <li>
+            <figure>
+                <img src="http://placehold.it/200x200" alt="">
+                <figcaption>title3</figcaption>
+            </figure>
+        </li>
+    </ul>
     <!-- 
         clientX, clientY : 브라우저 화면 기준 마우스 위치 (스크롤 영역 제외하고 / 좌측 상단 0)
         offsetX, offsetY : 이벤트가 발생한 대상 기준 마우스 위치
@@ -71,9 +93,63 @@
         //     console.log(e.screenX, e.screenY);
         // });
 
+        // var caption = target.find('figcaption'); // target 안에 있는 figcaption
         var direction = '';
+        var animationTo;
+        var positionIn = {top:'0%', left:'0%'};
         // var oldX = 0;
         // var oldY = 0;
+
+        function moveCaption(e) {
+            var $this = $(this);
+            direction = detectMouseDirection(e);
+
+            /** do your animations here **/ 
+            var positionOut = (function() {
+                switch(direction) {
+                    case 0:
+                    /** animations from the TOP : 마우스 위에서 아래로 **/
+                    return {top:'-100%', left:'0%'}
+                    break;
+                    case 1:
+                    /** animations from the RIGHT : 마우스 오른쪽에서 왼쪽으로 **/
+                    return {top:'0%', left:'100%'}
+                    break;
+                    case 2:
+                    /** animations from the BOTTOM : 마우스 아래에서 위로 **/
+                    return {top:'100%', left:'0%'}
+                    break;
+                    case 3:
+                    /** animations from the LEFT : 마우스 왼쪽에서 오른쪽으로 **/
+                    return {top:'0%', left:'-100%'}
+                    break;
+                }
+            })();
+
+            // 들어올 때
+            // case 1 : 오른쪽에서 왼쪽으로 마우스 들어옴 : left 100% -> 0 / top 0 -> 0 => left=0 top=0
+            // case 0 : 위쪽에서 아래쪽으로 마우스 들어옴 : left 0 -> 0 / top -100% -> 0 => top=0 left=0
+            // case 3 : 왼쪽에서 오른쪽으로 마우스 들어옴 : left -100% -> 0 / top 0 -> 0 => left=0 top=0
+            // case 2 : 아래쪽에서 위쪽으로 마우스 들어옴 : left 0 -> 0 / top 100% -> 0 => top=0 left=0
+            // 방향에 따라서 초기 위치가 다름
+
+            // 나갈 때
+            // case 1 : 왼쪽에서 오른쪽으로 마우스 나감 : left 0 -> 100% / top 0 -> 0 => left=100% top=0
+            // case 0 : 아래쪽에서 위쪽으로 마우스 나감 : left 0 -> 0 / top 0 -> -100% => top=-100% left=0
+            // case 3 : 오른쪽에서 왼쪽으로 마우스 나감 : left 0 -> -100% / top 0 -> 0 => left=-100% top=0
+            // case 2 : 위쪽에서 아래쪽으로 마우스 나감 : left 0 -> 0 / top 0 -> 100% => top=-100% left=0
+
+
+            // 이벤트 종류 구분
+            if(e.type === 'mouseenter'){
+                animationTo = positionIn;
+                $this.find('figcaption').css(positionOut);
+            } else if (e.type === 'mouseleave') {
+                animationTo = positionOut;
+            }
+
+            $this.find('figcaption').stop().animate(animationTo, 100);
+        }
 
         function detectMouseDirection(e) {
             // (e) : 이벤트가 있을 때
@@ -104,43 +180,30 @@
 
 
             // ---------------------------------------------------------------------
-
+            
+            var el = $(e.currentTarget);
             /** the width and height of the current div **/
-            var w = $(this).width();
-            var h = $(this).height();
+            var w = el.width();
+            var h = el.height();
 
             /** calculate the x and y to get an angle to the center of the div from that x and y. **/
             /** gets the x value relative to the center of the DIV and "normalize" it **/
-            var x = (e.pageX - $(this).offset().left - (w/2)) * ( w > h ? (h/w) : 1 );
-            var y = (e.pageY - $(this).offset().top  - (h/2)) * ( h > w ? (w/h) : 1 );
+            var x = (e.pageX - el.offset().left - (w/2)) * ( w > h ? (h/w) : 1 );
+            var y = (e.pageY - el.offset().top  - (h/2)) * ( h > w ? (w/h) : 1 );
 
             /** the angle and the direction from where the mouse came in/went out clockwise (TRBL=0123);**/
             /** first calculate the angle of the point, 
-             add 180 deg to get rid of the negative values
+            add 180 deg to get rid of the negative values
             divide by 90 to get the quadrant
             add 3 and do a modulo by 4  to shift the quadrants to a proper clockwise TRBL (top/right/bottom/left) **/
             var direction = Math.round((((Math.atan2(y, x) * (180 / Math.PI)) + 180 ) / 90 ) + 3 )  % 4;
             console.log(direction);
 
-            /** do your animations here **/ 
-            switch(direction) {
-                case 0:
-                /** animations from the TOP : 마우스 위에서 아래로 **/
-                break;
-                case 1:
-                /** animations from the RIGHT : 마우스 오른쪽에서 왼쪽으로 **/
-                break;
-                case 2:
-                /** animations from the BOTTOM : 마우스 아래에서 위로 **/
-                break;
-                case 3:
-                /** animations from the LEFT : 마우스 왼쪽에서 오른쪽으로 **/
-                break;
-            }
+            return direction;
         }
 
         // target.addEventListener('mousemove mouseenter mouseleave', detectMouseDirection);
-        target.on('mousemove mouseenter mouseleave', detectMouseDirection);
+        target.on('mousemove mouseenter mouseleave', moveCaption);
         // document.addEventListener('mousemove', function() {
         //     detectMouseDirection();
         // });
